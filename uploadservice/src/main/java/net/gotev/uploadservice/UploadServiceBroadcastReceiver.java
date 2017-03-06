@@ -49,6 +49,10 @@ public class UploadServiceBroadcastReceiver extends BroadcastReceiver
                 onCancelled(context, data.getUploadInfo());
                 break;
 
+            case RETRY:
+                onRetry(context, data.getUploadInfo(), null, data.getException());
+                break;
+
             default:
                 break;
         }
@@ -96,5 +100,10 @@ public class UploadServiceBroadcastReceiver extends BroadcastReceiver
 
     @Override
     public void onCancelled(final Context context, final UploadInfo uploadInfo) {
+    }
+
+    @Override
+    public void onRetry(final Context context, final UploadInfo uploadInfo, final UploadTask task, final Exception exception) {
+
     }
 }

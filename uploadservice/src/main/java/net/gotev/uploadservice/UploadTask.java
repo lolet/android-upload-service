@@ -167,6 +167,7 @@ public abstract class UploadTask implements Runnable {
                             Thread.sleep(2000);
                         } catch (Throwable ignored) { }
                     }
+                    broadcastRetry(this, exc);
 
                     errorDelay *= UploadService.BACKOFF_MULTIPLIER;
                     if (errorDelay > UploadService.MAX_RETRY_WAIT_TIME) {
@@ -416,6 +417,44 @@ public abstract class UploadTask implements Runnable {
                 notificationConfig.getErrorIconColorResourceID());
 
         service.taskCompleted(params.getId());
+    }
+
+
+    /**
+     * Broadcasts when upload retries after error.
+     * This called automatically by {@link UploadTask} when the specific implementation of
+     * {@link UploadTask#upload()} throws an exception.
+     * You should never call this method explicitly in your implementation.
+     *
+     * @param exception exception to broadcast. It's the one thrown by the specific implementation
+     *                  of {@link UploadTask#upload()}
+     */
+    private void broadcastRetry(final UploadTask self, final Exception exception) {
+
+        Logger.info(LOG_TAG, "Broadcasting retry for upload with ID: "
+                + params.getId() + ". " + exception.getMessage());
+
+        final UploadInfo uploadInfo = new UploadInfo(params.getId(), startTime, uploadedBytes,
+                totalBytes, (attempts - 1),
+                successfullyUploadedFiles,
+                params.getFiles().size());
+
+        BroadcastData data = new BroadcastData()
+                .setStatus(BroadcastData.Status.RETRY)
+                .setUploadInfo(uploadInfo)
+                .setException(exception);
+
+        final UploadStatusDelegate delegate = UploadService.getUploadStatusDelegate(params.getId());
+        if (delegate != null) {
+            mainThreadHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    delegate.onRetry(service, uploadInfo, self, exception);
+                }
+            });
+        } else {
+            service.sendBroadcast(data.getIntent());
+        }
     }
 
     /**

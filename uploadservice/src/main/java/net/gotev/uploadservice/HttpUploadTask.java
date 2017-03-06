@@ -71,6 +71,10 @@ public abstract class HttpUploadTask extends UploadTask
             Logger.debug(LOG_TAG, "Server responded with HTTP " + response.getHttpCode()
                             + " to upload with ID: " + params.getId());
 
+            if(response.getHttpCode() >= 400) {
+                throw new IOException("Http exception " + response.getHttpCode());
+            }
+
             // Broadcast completion only if the user has not cancelled the operation.
             // It may happen that when the body is not completely written and the client
             // closes the connection, no exception is thrown here, and the server responds
@@ -92,6 +96,10 @@ public abstract class HttpUploadTask extends UploadTask
      * @throws UnsupportedEncodingException
      */
     protected abstract long getBodyLength() throws UnsupportedEncodingException;
+
+    public HttpUploadTaskParameters getHttpParams() {
+        return httpParams;
+    }
 
     // BodyWriter.OnStreamWriteListener methods implementation
 

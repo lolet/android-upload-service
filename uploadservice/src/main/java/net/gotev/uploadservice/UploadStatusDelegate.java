@@ -42,4 +42,14 @@ public interface UploadStatusDelegate {
      * @param uploadInfo upload status information
      */
     void onCancelled(final Context context, final UploadInfo uploadInfo);
+
+    /**
+     * Called when the upload is retried. Override this method to add your own logic.
+     *
+     * @param context context
+     * @param uploadInfo upload status information
+     * @param task a upload task
+     * @param exception exception that caused the error
+     */
+    void onRetry(final Context context, final UploadInfo uploadInfo, final UploadTask task, final Exception exception);
 }
